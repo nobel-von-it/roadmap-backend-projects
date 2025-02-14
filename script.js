@@ -32,10 +32,11 @@ function createTask(text) {
 			moveTaskUp(task);
 		}
 	});
-	taskLabel.appendChild(taskCheckbox);
 
 	const taskSpan = document.createElement("span");
 	taskSpan.classList.add("checkmark");
+
+	taskLabel.appendChild(taskCheckbox);
 	taskLabel.appendChild(taskSpan);
 
 	task.appendChild(taskLabel);
@@ -51,6 +52,7 @@ function createTask(text) {
 	taskDeleteButton.addEventListener("click", () => {
 		taskList.removeChild(task);
 	})
+
 	task.appendChild(taskDeleteButton);
 
 	return task;
@@ -67,7 +69,7 @@ function moveTaskUp(task) {
 addTaskButton.addEventListener("click", () => {
 	if (inputText.value.trim() !== "") {
 		const task = createTask(inputText.value);
-		taskList.appendChild(task);
+		moveTaskUp(task);
 		inputText.value = "";
 	}
 })
