@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Unit Converter</title>
+</head>
+
+<body>
+    <div id="container">
+        <p id="title">Unit Converter</p>
+        <ul id="unit-list">
+            <li class="unit-item"><button>Length</button></li>
+            <li class="unit-item"><button>Weight</button></li>
+            <li class="unit-item"><button>Temperature</button></li>
+        </ul>
+        <div id="input-section">
+            <form class="unit-form" id="length-form">
+                <input type="number" id="lenght-convert">
+                <select id="length-from">
+                    <option value="cm">cm</option>
+                    <option value="m">m</option>
+                    <option value="km">km</option>
+                </select>
+                <select id="length-to">
+                    <option value="cm">cm</option>
+                    <option value="m">m</option>
+                    <option value="km">km</option>
+                </select>
+                <button type="submit" class="button-form" id="length-button">Convert</button>
+            </form>
+            <form class="unit-form" id="weight-form" style="display: none;">
+                <input type="number" id="weight-convert">
+                <select id="weight-from">
+                    <option value="kg">kg</option>
+                    <option value="lb">lb</option>
+                </select>
+                <select id="weight-to">
+                    <option value="kg">kg</option>
+                    <option value="lb">lb</option>
+                </select>
+                <button type="submit" class="button-form" id="weight-button">Convert</button>
+            </form>
+            <form class="unit-form" id="temperature-form" style="display: none;">
+                <input type="number" id="temperature-convert">
+                <select id="temperature-from">
+                    <option value="C">C</option>
+                    <option value="F">F</option>
+                </select>
+                <select id="temperature-to">
+                    <option value="C">C</option>
+                    <option value="F">F</option>
+                </select>
+                <button type="submit" class="button-form" id="temperature-button">Convert</button>
+            </form>
+            <div id="result" style="display: none;">
+                <p id="result-label"></p>
+                <p id="result-value"></p>
+                <button id="reset-button">Reset</button>
+                <button id="copy-button">Copy</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
