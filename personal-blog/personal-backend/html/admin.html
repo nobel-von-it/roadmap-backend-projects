@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Personal Admin Posts</title>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Articles</h1>
+        <ul id="articles-list">
+            {{ for article in articles }}
+            <li class="article-mini">
+                <a href="/article/{ article.id }">{ article.title }</a>
+                <div>{ article.date }</div>
+
+                <form action="/edit/{ article.id }" method="GET">
+                    <button type="submit">Edit</button>
+                </form>
+
+                <form action="/delete/{ article.id }" method="POST">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+            {{ endfor }}
+        </ul>
+        <form action="/new" method="GET">
+            <button type="submit">New</button>
+        </form>
+    </div>
+</body>
+
+</html>
