@@ -14,13 +14,13 @@ use axum::{
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 
-use crate::cache::CacheService;
+use crate::cache::{CacheService, RuntimeCache};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv()?;
 
-    let cache = Arc::new(RwLock::new(CacheService::new()));
+    let cache = Arc::new(RwLock::new(CacheService::new(RuntimeCache::new())));
 
     let router = Router::new()
         .route("/", get(handlers::get_homepage))

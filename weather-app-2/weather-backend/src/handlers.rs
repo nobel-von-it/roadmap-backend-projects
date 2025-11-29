@@ -6,7 +6,7 @@ use axum::{Json, response::IntoResponse};
 use serde_json::json;
 
 use crate::api;
-use crate::cache::CacheService;
+use crate::cache::{Cache, CacheService, RuntimeCache};
 use crate::models::{CacheKey, FormCity};
 
 pub async fn get_homepage() -> impl IntoResponse {
@@ -14,7 +14,7 @@ pub async fn get_homepage() -> impl IntoResponse {
 }
 
 pub async fn get_current_temperature(
-    State(cache): State<Arc<RwLock<CacheService>>>,
+    State(cache): State<Arc<RwLock<CacheService<RuntimeCache>>>>,
     Json(form): Json<FormCity>,
 ) -> impl IntoResponse {
     let cache_key = CacheKey {
