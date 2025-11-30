@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
+use anyhow::Result;
 use axum::Json;
+use redis::Commands;
 
 use crate::models::{CacheKey, api};
 
@@ -92,4 +94,27 @@ impl Cache for RuntimeCache {
     fn len(&self) -> usize {
         self.responses.len()
     }
+}
+
+pub struct RedisCache {
+    client: redis::Client,
+}
+
+impl RedisCache {
+    pub fn new() -> Result<RedisCache> {
+        let client = redis::Client::open("redis://127.0.0.1/")?;
+        Ok(RedisCache { client })
+    }
+}
+
+impl Cache for RedisCache {
+    fn get(&self, key: &CacheKey) -> Option<Json<api::PreparedTemp>> {
+        let mut con = self.client.get_connection().ok()?;
+        con.get(key).ok()?
+    }
+    fn set(&mut self, key: CacheKey, value: Json<api::PreparedTemp>) {}
+    fn get_aprx(&self, key_aprx: &CacheKey) -> Option<Json<api::PreparedTemp>> {}
+    fn should_refresh(&self, key: &CacheKey, ts: u64) -> bool {}
+    fn del(&mut self, key: &CacheKey) {}
+    fn len(&self) -> usize {}
 }
