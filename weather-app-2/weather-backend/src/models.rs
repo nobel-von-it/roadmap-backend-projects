@@ -9,8 +9,65 @@ pub struct FormCity {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CacheKey {
     pub city: String,
-    pub timestamp: u64,
+    pub api_type: WeatherApiType,
+    pub units: WeatherUnits,
+    pub lang: WeatherLang,
+    pub bucket_ts: u64,
 }
+impl ToString for CacheKey {
+    fn to_string(&self) -> String {
+        format!(
+            "{}-{}-{}-{}-{}",
+            self.city,
+            self.api_type.to_string(),
+            self.units.to_string(),
+            self.lang.to_string(),
+            self.bucket_ts
+        )
+    }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum WeatherLang {
+    En,
+    Ru,
+}
+impl ToString for WeatherLang {
+    fn to_string(&self) -> String {
+        match self {
+            WeatherLang::En => "en".to_string(),
+            WeatherLang::Ru => "ru".to_string(),
+        }
+    }
+}
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum WeatherApiType {
+    Current,
+}
+impl ToString for WeatherApiType {
+    fn to_string(&self) -> String {
+        match self {
+            WeatherApiType::Current => "current".to_string(),
+        }
+    }
+}
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum WeatherUnits {
+    Metric,
+}
+impl ToString for WeatherUnits {
+    fn to_string(&self) -> String {
+        match self {
+            WeatherUnits::Metric => "metric".to_string(),
+        }
+    }
+}
+
+// #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+// pub struct CacheKey {
+//     pub city: String,
+//     pub timestamp: u64,
+// }
 
 pub mod api {
     use serde::Serialize;

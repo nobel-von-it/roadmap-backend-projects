@@ -17,12 +17,12 @@ pub trait Cache {
     fn len(&self) -> usize;
 }
 
-#[derive(Debug, Clone)]
-pub struct CacheService<C: Clone> {
+#[derive(Debug)]
+pub struct CacheService<C: Cache> {
     service: C,
 }
 
-impl<C: Clone> CacheService<C> {
+impl<C: Cache> CacheService<C> {
     pub fn new(service: C) -> CacheService<C> {
         CacheService { service }
     }
