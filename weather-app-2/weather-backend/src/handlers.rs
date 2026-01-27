@@ -6,24 +6,20 @@ use serde_json::json;
 
 use crate::api;
 use crate::cache::{Cache, CacheService, RedisCache};
-use crate::models::api::PreparedTemp;
 use crate::models::vc::ResponseVC;
 use crate::models::{CacheKey, FormCity};
 
 #[axum::debug_handler]
 pub async fn get_current_temperature(
-    State(cache): State<Arc<CacheService<CacheKey, PreparedTemp, RedisCache>>>,
+    State(cache): State<Arc<CacheService<RedisCache>>>,
     Json(form): Json<FormCity>,
 ) -> impl IntoResponse {
     let user_cache_key = CacheKey::new(form.city.clone(), 0);
-    log::info!("user_cache_key: {}", &user_cache_key.to_string());
+    log::info!("user_cache_key: {}", &user_cache_key.city_name);
 
     let aprx_score = form.timestamp - (form.timestamp % 3600);
     if aprx_score + 3600 > form.timestamp
-        && let Some(pt) = cache
-            .get(&user_cache_key, form.timestamp as i64, aprx_score as i64)
-            .await
-            .unwrap()
+        && let Some(pt) = cache.get(&user_cache_key).await.unwrap()
     {
         log::info!("cache hit: {} base temp {}C", &form.city, pt.temp);
         return Json(pt).into_response();

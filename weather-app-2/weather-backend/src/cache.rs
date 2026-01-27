@@ -1,36 +1,29 @@
-use crate::models::{
-    CacheKey,
-    api::{self, PreparedTemp},
-};
+use crate::models::{CacheKey, api::PreparedTemp};
 use anyhow::Result;
 use redis::AsyncTypedCommands;
 
-pub trait Cache<K, V> {
-    async fn set(&self, key: K, value: V, ttl: i64, score: i64) -> Result<()>;
-    async fn get(&self, key: &K, current: i64, score: i64) -> Result<Option<V>>;
+pub trait Cache {
+    async fn set(&self, key: CacheKey, value: PreparedTemp, ttl: i64, score: i64) -> Result<()>;
+    async fn get(&self, key: &CacheKey) -> Result<Option<PreparedTemp>>;
 }
 
 #[derive(Debug, Clone)]
-pub struct CacheService<K, V, C: Cache<K, V>> {
+pub struct CacheService<C: Cache> {
     service: C,
-    _phantom: std::marker::PhantomData<(K, V)>,
 }
 
-impl<K, V, C: Cache<K, V>> CacheService<K, V, C> {
+impl<C: Cache> CacheService<C> {
     pub fn new(service: C) -> Self {
-        CacheService {
-            service,
-            _phantom: std::marker::PhantomData,
-        }
+        CacheService { service }
     }
 }
 
-impl<K, V, C: Cache<K, V>> Cache<K, V> for CacheService<K, V, C> {
-    async fn set(&self, key: K, value: V, ttl: i64, score: i64) -> Result<()> {
+impl<C: Cache> Cache for CacheService<C> {
+    async fn set(&self, key: CacheKey, value: PreparedTemp, ttl: i64, score: i64) -> Result<()> {
         self.service.set(key, value, ttl, score).await
     }
-    async fn get(&self, key: &K, current: i64, score: i64) -> Result<Option<V>> {
-        self.service.get(key, current, score).await
+    async fn get(&self, key: &CacheKey) -> Result<Option<PreparedTemp>> {
+        self.service.get(key).await
     }
 }
 #[derive(Debug, Clone)]
@@ -50,7 +43,7 @@ impl RedisCache {
     }
 }
 
-impl Cache<CacheKey, PreparedTemp> for RedisCache {
+impl Cache for RedisCache {
     async fn set(&self, key: CacheKey, value: PreparedTemp, ttl: i64, score: i64) -> Result<()> {
         let mut conn = self.pool.get().await?;
 
@@ -60,7 +53,7 @@ impl Cache<CacheKey, PreparedTemp> for RedisCache {
 
         Ok(())
     }
-    async fn get(&self, key: &CacheKey, current: i64, score: i64) -> Result<Option<PreparedTemp>> {
+    async fn get(&self, key: &CacheKey) -> Result<Option<PreparedTemp>> {
         let mut conn = self.pool.get().await?;
 
         if let Some(res) = conn.zrevrange(key, 0, 0).await?.first() {
@@ -70,34 +63,3 @@ impl Cache<CacheKey, PreparedTemp> for RedisCache {
         Ok(None)
     }
 }
-// impl<K, V> Cache<K, V> for RedisCache
-// where
-//     K: redis::ToRedisArgs + Sync + Send,
-//     V: serde::Serialize + serde::de::DeserializeOwned + Sync + Send,
-// {
-//     async fn set(&self, name: K, value: V, ttl: i64, score: i64) -> Result<()> {
-//         let mut conn = self.pool.get().await?;
-//         let encoded_value = serde_json::to_string(&value)?;
-//
-//         conn.zadd(&name, encoded_value, score).await?;
-//         conn.expire(&name, ttl).await?;
-//
-//         Ok(())
-//     }
-//     async fn get(&self, key: &K, current: i64, score: i64) -> Result<Option<V>> {
-//         let mut conn = self.pool.get().await?;
-//
-//         let results = conn.zrevrange(key, 0, 0).await?;
-//
-//         if let Some(json) = results.first() {
-//             let value: V = serde_json::from_str(&json)?;
-//         }
-//
-//         let json: Option<String> = redis::cmd("GET").arg(key).query_async(&mut conn).await?;
-//
-//         match json {
-//             Some(s) => Ok(Some(serde_json::from_str(&s)?)),
-//             None => Ok(None),
-//         }
-//     }
-// }

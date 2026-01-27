@@ -11,10 +11,7 @@ use axum::{Router, routing::post};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 
-use crate::{
-    cache::{CacheService, RedisCache},
-    models::{CacheKey, api::PreparedTemp},
-};
+use crate::cache::{CacheService, RedisCache};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -27,8 +24,7 @@ async fn main() -> Result<()> {
         redis_cache.get_all_keys().await?.join(", ")
     );
 
-    let cache: Arc<CacheService<CacheKey, PreparedTemp, RedisCache>> =
-        Arc::new(CacheService::new(redis_cache));
+    let cache = Arc::new(CacheService::new(redis_cache));
 
     let static_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static");
     let router = Router::new()
