@@ -1,18 +1,15 @@
-use std::collections::HashMap;
-
-use anyhow::Result;
-use axum::Json;
-use redis::Commands;
+use std::{collections::HashMap, time::Duration};
 
 use crate::models::{CacheKey, api};
+use anyhow::Result;
+use axum::Json;
+use redis::TypedCommands;
 
 const HOUR: u64 = 60 * 60;
 
 pub trait Cache {
-    fn should_refresh(&self, key: &CacheKey, ts: u64) -> bool;
-    fn set(&mut self, key: CacheKey, value: Json<api::PreparedTemp>);
-    fn get(&self, key: &CacheKey) -> Option<Json<api::PreparedTemp>>;
-    fn get_aprx(&self, key_aprx: &CacheKey) -> Option<Json<api::PreparedTemp>>;
+    fn set(&mut self, key: CacheKey, value: api::PreparedTemp);
+    fn get(&self, key: &CacheKey) -> Option<api::PreparedTemp>;
     fn del(&mut self, key: &CacheKey);
     fn len(&self) -> usize;
 }
@@ -28,18 +25,12 @@ impl<C: Cache> CacheService<C> {
     }
 }
 
-impl Cache for CacheService<RuntimeCache> {
-    fn should_refresh(&self, key: &CacheKey, ts: u64) -> bool {
-        self.service.should_refresh(key, ts)
-    }
-    fn set(&mut self, key: CacheKey, value: Json<api::PreparedTemp>) {
+impl<C: Cache> Cache for CacheService<C> {
+    fn set(&mut self, key: CacheKey, value: api::PreparedTemp) {
         self.service.set(key, value);
     }
-    fn get(&self, key: &CacheKey) -> Option<Json<api::PreparedTemp>> {
+    fn get(&self, key: &CacheKey) -> Option<api::PreparedTemp> {
         self.service.get(key)
-    }
-    fn get_aprx(&self, key_aprx: &CacheKey) -> Option<Json<api::PreparedTemp>> {
-        self.service.get_aprx(key_aprx)
     }
     fn del(&mut self, key: &CacheKey) {
         self.service.del(key);
@@ -51,7 +42,7 @@ impl Cache for CacheService<RuntimeCache> {
 
 #[derive(Debug, Clone)]
 pub struct RuntimeCache {
-    responses: HashMap<CacheKey, Json<api::PreparedTemp>>,
+    responses: HashMap<CacheKey, api::PreparedTemp>,
 }
 
 impl RuntimeCache {
@@ -60,33 +51,32 @@ impl RuntimeCache {
             responses: HashMap::new(),
         }
     }
+    fn get_last_by_city(&self, city_name: &str) -> Option<(CacheKey, api::PreparedTemp)> {
+        self.responses
+            .iter()
+            .filter(|(k, _)| k.city_name == city_name)
+            .reduce(|(k1, v1), (k2, v2)| {
+                if k1.api_timestamp > k2.api_timestamp {
+                    (k1, v1)
+                } else {
+                    (k2, v2)
+                }
+            })
+            .map(|(k, v)| (k.clone(), v.clone()))
+    }
 }
 
 impl Cache for RuntimeCache {
-    fn should_refresh(&self, key: &CacheKey, ts: u64) -> bool {
-        self.responses.contains_key(key)
-            && ts
-                .checked_sub(key.timestamp)
-                .map(|sub| sub < HOUR * 2)
-                .unwrap_or(false)
-    }
-    fn set(&mut self, key: CacheKey, value: Json<api::PreparedTemp>) {
+    fn set(&mut self, key: CacheKey, value: api::PreparedTemp) {
         self.responses.insert(key, value);
     }
-    fn get(&self, key: &CacheKey) -> Option<Json<api::PreparedTemp>> {
-        self.responses.get(key).cloned()
-    }
-    fn get_aprx(&self, key_aprx: &CacheKey) -> Option<Json<api::PreparedTemp>> {
-        if let Some(value) = self.get(key_aprx) {
-            return Some(value);
+    fn get(&self, user_key: &CacheKey) -> Option<api::PreparedTemp> {
+        if let Some((k, v)) = self.get_last_by_city(user_key.city_name.as_str())
+            && k.api_timestamp + HOUR < user_key.user_timestamp
+        {
+            return Some(v);
         }
-        self.responses
-            .iter()
-            .find(|(k, _)| {
-                k.city == key_aprx.city
-                    && k.timestamp.checked_sub(key_aprx.timestamp).unwrap_or(0) < HOUR * 2
-            })
-            .map(|(_, v)| v.clone())
+        None
     }
     fn del(&mut self, key: &CacheKey) {
         self.responses.remove(key);
@@ -101,20 +91,48 @@ pub struct RedisCache {
 }
 
 impl RedisCache {
-    pub fn new() -> Result<RedisCache> {
-        let client = redis::Client::open("redis://127.0.0.1/")?;
+    pub fn new(url: &str) -> Result<RedisCache> {
+        let client = redis::Client::open(url)?;
         Ok(RedisCache { client })
+    }
+    pub fn get_all_keys(&self) -> Vec<String> {
+        let mut conn = self.client.get_connection().unwrap();
+        conn.keys("*").expect("KEYS failed")
     }
 }
 
 impl Cache for RedisCache {
-    fn get(&self, key: &CacheKey) -> Option<Json<api::PreparedTemp>> {
-        let mut con = self.client.get_connection().ok()?;
-        con.get(key).ok()?
+    fn set(&mut self, key: CacheKey, value: api::PreparedTemp) {
+        let mut conn = self.client.get_connection().unwrap();
+
+        let encoded = serde_json::to_string(&value).expect("Serialization failed");
+
+        conn.zadd(&key.city_name, encoded, key.api_timestamp)
+            .expect("ZADD failed");
+
+        let expire_time = HOUR - key.user_timestamp % HOUR;
+        log::info!(
+            "key with name {} will expire in {} seconds",
+            key.city_name,
+            expire_time
+        );
+        conn.expire(&key.city_name, expire_time as i64)
+            .expect("EXPIRE failed");
     }
-    fn set(&mut self, key: CacheKey, value: Json<api::PreparedTemp>) {}
-    fn get_aprx(&self, key_aprx: &CacheKey) -> Option<Json<api::PreparedTemp>> {}
-    fn should_refresh(&self, key: &CacheKey, ts: u64) -> bool {}
-    fn del(&mut self, key: &CacheKey) {}
-    fn len(&self) -> usize {}
+    fn get(&self, key: &CacheKey) -> Option<api::PreparedTemp> {
+        let mut conn = self.client.get_connection().unwrap();
+        conn.zrevrange(&key.city_name, 0, key.user_timestamp as isize)
+            .expect("ZREVRANGE failed")
+            .last()
+            .map(|v| serde_json::from_str(v).expect("Deserialization failed"))
+    }
+    fn del(&mut self, key: &CacheKey) {
+        let mut conn = self.client.get_connection().unwrap();
+        conn.zrembyscore(key.to_string(), key.api_timestamp, key.api_timestamp)
+            .expect("ZREMBYSCORE failed");
+    }
+    fn len(&self) -> usize {
+        let mut conn = self.client.get_connection().unwrap();
+        conn.keys("*").unwrap().len()
+    }
 }

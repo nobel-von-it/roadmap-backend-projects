@@ -1,33 +1,25 @@
 use std::sync::{Arc, RwLock};
 
 use axum::extract::State;
-use axum::response::Html;
 use axum::{Json, response::IntoResponse};
 use serde_json::json;
 
 use crate::api;
-use crate::cache::{Cache, CacheService, RuntimeCache};
+use crate::cache::{Cache, CacheService};
 use crate::models::{CacheKey, FormCity};
 
-pub async fn get_homepage() -> impl IntoResponse {
-    Html(include_str!("../../index.html")).into_response()
-}
-
-pub async fn get_current_temperature(
-    State(cache): State<Arc<RwLock<CacheService<RuntimeCache>>>>,
+pub async fn get_current_temperature<C: Cache>(
+    State(cache): State<Arc<RwLock<CacheService<C>>>>,
     Json(form): Json<FormCity>,
 ) -> impl IntoResponse {
-    let cache_key = CacheKey {
-        city: form.city.clone(),
-        timestamp: form.timestamp,
-    };
+    let user_cache_key = CacheKey::new(form.city.clone(), 0, form.timestamp);
+    log::info!("user_cache_key: {}", &user_cache_key.to_string());
 
     if let Ok(reader) = cache.read() {
-        println!("reader len: {}", reader.len());
-        if let Some(pt) = reader.get_aprx(&cache_key) {
-            println!("something really found");
-            println!("{:#?}", pt);
-            return pt.into_response();
+        log::info!("reader len: {}", reader.len());
+        if let Some(pt) = reader.get(&user_cache_key) {
+            log::info!("cache hit: {} base temp {}C", &form.city, pt.temp);
+            return Json(pt).into_response();
         }
     }
 
@@ -42,11 +34,10 @@ pub async fn get_current_temperature(
         }
     };
 
-    let fts = form.timestamp;
-    let rts = response_vc.get_current_timestamp();
-    println!("{} - {} = {}", fts, rts, fts.checked_sub(rts).unwrap_or(0));
+    let current_api_time = response_vc.get_current_api_time();
+    let cache_key = CacheKey::new(form.city.clone(), current_api_time, form.timestamp);
 
-    let pt = Json(response_vc.get_prepared_temp());
+    let pt = response_vc.get_prepared_temp();
 
     {
         if let Ok(mut writer) = cache.write() {
@@ -54,5 +45,5 @@ pub async fn get_current_temperature(
         }
     }
 
-    pt.into_response()
+    Json(pt).into_response()
 }

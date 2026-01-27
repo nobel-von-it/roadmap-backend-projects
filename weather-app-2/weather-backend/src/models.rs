@@ -8,57 +8,48 @@ pub struct FormCity {
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CacheKey {
-    pub city: String,
-    pub api_type: WeatherApiType,
-    pub units: WeatherUnits,
-    pub lang: WeatherLang,
-    pub bucket_ts: u64,
+    pub city_name: String,
+    pub api_timestamp: u64,
+    pub user_timestamp: u64,
 }
+
+impl PartialOrd for CacheKey {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for CacheKey {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.api_timestamp.cmp(&other.api_timestamp)
+    }
+}
+
+impl CacheKey {
+    pub fn new(city_name: String, api_timestamp: u64, user_timestamp: u64) -> CacheKey {
+        CacheKey {
+            city_name,
+            api_timestamp,
+            user_timestamp,
+        }
+    }
+}
+
 impl ToString for CacheKey {
     fn to_string(&self) -> String {
         format!(
-            "{}-{}-{}-{}-{}",
-            self.city,
-            self.api_type.to_string(),
-            self.units.to_string(),
-            self.lang.to_string(),
-            self.bucket_ts
+            "{}-{}-{}",
+            self.city_name, self.api_timestamp, self.user_timestamp
         )
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum WeatherLang {
-    En,
-    Ru,
-}
-impl ToString for WeatherLang {
-    fn to_string(&self) -> String {
-        match self {
-            WeatherLang::En => "en".to_string(),
-            WeatherLang::Ru => "ru".to_string(),
-        }
-    }
-}
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum WeatherApiType {
-    Current,
-}
-impl ToString for WeatherApiType {
-    fn to_string(&self) -> String {
-        match self {
-            WeatherApiType::Current => "current".to_string(),
-        }
-    }
-}
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum WeatherUnits {
-    Metric,
-}
-impl ToString for WeatherUnits {
-    fn to_string(&self) -> String {
-        match self {
-            WeatherUnits::Metric => "metric".to_string(),
+impl From<String> for CacheKey {
+    fn from(s: String) -> Self {
+        let parts = s.split("-").collect::<Vec<_>>();
+        CacheKey {
+            city_name: parts[0].to_string(),
+            api_timestamp: parts[1].parse().unwrap(),
+            user_timestamp: parts[2].parse().unwrap(),
         }
     }
 }
@@ -66,13 +57,66 @@ impl ToString for WeatherUnits {
 // #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 // pub struct CacheKey {
 //     pub city: String,
-//     pub timestamp: u64,
+//     pub api_type: WeatherApiType,
+//     pub units: WeatherUnits,
+//     pub lang: WeatherLang,
+//     pub bucket_ts: u64,
+// }
+// impl ToString for CacheKey {
+//     fn to_string(&self) -> String {
+//         format!(
+//             "{}-{}-{}-{}-{}",
+//             self.city,
+//             self.api_type.to_string(),
+//             self.units.to_string(),
+//             self.lang.to_string(),
+//             self.bucket_ts
+//         )
+//     }
+// }
+//
+// #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+// pub enum WeatherLang {
+//     En,
+//     Ru,
+// }
+// impl ToString for WeatherLang {
+//     fn to_string(&self) -> String {
+//         match self {
+//             WeatherLang::En => "en".to_string(),
+//             WeatherLang::Ru => "ru".to_string(),
+//         }
+//     }
+// }
+// #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+// pub enum WeatherApiType {
+//     Current,
+// }
+// impl ToString for WeatherApiType {
+//     fn to_string(&self) -> String {
+//         match self {
+//             WeatherApiType::Current => "current".to_string(),
+//         }
+//     }
+// }
+// #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+// pub enum WeatherUnits {
+//     Metric,
+// }
+// impl ToString for WeatherUnits {
+//     fn to_string(&self) -> String {
+//         match self {
+//             WeatherUnits::Metric => "metric".to_string(),
+//         }
+//     }
 // }
 
 pub mod api {
-    use serde::Serialize;
+    use std::fmt::Display;
 
-    #[derive(Debug, Clone, Serialize)]
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct PreparedTemp {
         pub temp: f32,
         pub temp_max: f32,
@@ -99,6 +143,18 @@ pub mod api {
                 pressure,
                 wind_speed,
             }
+        }
+    }
+
+    impl Display for PreparedTemp {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", serde_json::to_string(self).unwrap())
+        }
+    }
+
+    impl From<String> for PreparedTemp {
+        fn from(s: String) -> Self {
+            serde_json::from_str(&s).unwrap()
         }
     }
 }
@@ -140,6 +196,9 @@ pub mod vc {
         }
         pub fn get_daily_forecase(&self) -> &[DayVC] {
             &self.days
+        }
+        pub fn get_current_api_time(&self) -> u64 {
+            self.current_conditions.datetime_epoch
         }
         pub fn get_current_timestamp(&self) -> u64 {
             let cc = &self.current_conditions;
