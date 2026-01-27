@@ -1,3 +1,4 @@
+use redis::ToRedisArgs;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -10,7 +11,16 @@ pub struct FormCity {
 pub struct CacheKey {
     pub city_name: String,
     pub api_timestamp: u64,
-    pub user_timestamp: u64,
+}
+
+impl ToRedisArgs for CacheKey {
+    fn write_redis_args<W>(&self, out: &mut W)
+    where
+        W: ?Sized + redis::RedisWrite,
+    {
+        let key = format!("weather:{}", self.city_name);
+        out.write_arg(key.as_bytes());
+    }
 }
 
 impl PartialOrd for CacheKey {
@@ -25,31 +35,26 @@ impl Ord for CacheKey {
 }
 
 impl CacheKey {
-    pub fn new(city_name: String, api_timestamp: u64, user_timestamp: u64) -> CacheKey {
+    pub fn new(city_name: String, api_timestamp: u64) -> CacheKey {
         CacheKey {
             city_name,
             api_timestamp,
-            user_timestamp,
         }
     }
 }
 
 impl ToString for CacheKey {
     fn to_string(&self) -> String {
-        format!(
-            "{}-{}-{}",
-            self.city_name, self.api_timestamp, self.user_timestamp
-        )
+        format!("{}-{}", self.city_name, self.api_timestamp)
     }
 }
 
 impl From<String> for CacheKey {
     fn from(s: String) -> Self {
-        let parts = s.split("-").collect::<Vec<_>>();
+        let (city_name, api_timestamp) = s.split_once("-").unwrap();
         CacheKey {
-            city_name: parts[0].to_string(),
-            api_timestamp: parts[1].parse().unwrap(),
-            user_timestamp: parts[2].parse().unwrap(),
+            city_name: city_name.to_string(),
+            api_timestamp: api_timestamp.parse().unwrap(),
         }
     }
 }
