@@ -28,12 +28,11 @@ async fn main() -> Result<()> {
 
     let static_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static");
     let router = Router::new()
-        // .route("/", get(handlers::get_homepage))
         .route("/api/weather", post(handlers::get_current_temperature))
         .nest_service("/static", ServeDir::new(static_path))
         .with_state(cache);
 
-    let listener = TcpListener::bind("0.0.0.0:3000").await?;
+    let listener = TcpListener::bind("0.0.0.0:3001").await?;
 
     axum::serve(listener, router).await?;
 
