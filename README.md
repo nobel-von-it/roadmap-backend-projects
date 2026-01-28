@@ -1,2 +1,3 @@
 # Created
-- https://roadmap.sh/projects/blogging-platform-api
+- blog-platform-api https://roadmap.sh/projects/blogging-platform-api
+- weather-app-2 https://roadmap.sh/projects/weather-api-wrapper-service
