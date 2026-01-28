@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blog Platform</title>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Blog Platform</h1>
+        <div id="new-post">
+            <form id="new-post-form">
+                <input type="text" name="title" value="" placeholder="some title" id="new-post-title">
+                <textarea rows="" cols="" id="new-post-content"></textarea>
+                <input type="text" name="category" value="" placeholder="some category (one)" id="new-post-category">
+                <input type="text" name="tags" value="" placeholder="some tags (separated by comma)" id="new-post-tags">
+                <button type="submit" id="new-post-submit">New</button>
+            </form>
+        </div>
+        <div id="posts">
+            <!-- empty by default but fetch from db (script.js) -->
+
+            <!-- <p class="post"> -->
+            <!-- <h2> -->
+            <!--     <a class="post-title" href="posts/:id"> -->
+            <!--         Post title -->
+            <!--     </a> -->
+            <!-- </h2> -->
+            <!-- <div class="post-date"> Post created at </div> -->
+            <!-- <button type="button" class="post-edit">Edit</button> -->
+            <!-- <button type="button" class="post-delete">Delete</button> -->
+
+            <!-- if edit button pressed render this form -->
+            <!-- <form id="edit-post-form"> -->
+            <!--     <input type="text" name="title" value="" placeholder="some title" id="edit-post-title"> -->
+            <!--     <textarea rows="" cols="" id="edit-post-content"></textarea> -->
+            <!--     <input type="text" name="category" value="" placeholder="some category (one)" id="edit-post-category"> -->
+            <!--     <input type="text" name="tags" value="" placeholder="some tags (separated by comma)" id="edit-post-tags"> -->
+            <!--     <button type="submit" id="edit-post-submit">Save</button> -->
+            <!--     <button type="submit" id="edit-cancel-post-submit">Cancel</button> -->
+            <!-- </form> -->
+            <!-- </p> -->
+        </div>
+    </div>
+
+    <script src="script.js">
+    </script>
+</body>
+
+</html>
