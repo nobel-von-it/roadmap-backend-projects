@@ -18,9 +18,12 @@ document.getElementById("new-post-form").addEventListener("submit", async (e) =>
     })
 
     if (response.status == 201) {
-        alert("New post created")
+        showAlert("New post created", "success")
     } else if (response.status == 400) {
-        alert("Something went wrong")
+        showAlert("Bad request", "error")
+        return
+    } else {
+        showAlert("Something went wrong", "error")
         return
     }
 
@@ -38,15 +41,26 @@ document.getElementById("new-post-form").addEventListener("submit", async (e) =>
     posts.appendChild(createPost(data))
 })
 
+function showAlert(message, type = 'success') {
+    const alert = document.createElement('div');
+    alert.className = `alert-message alert-${type}`;
+    alert.textContent = message;
+    document.body.appendChild(alert);
+
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
 async function fillPosts() {
     const respnose = await fetch("/posts", {
         method: "GET",
     });
 
     if (respnose.status == 200) {
-        alert("Loading successfull")
+        showAlert("Loading successfull", "success")
     } else {
-        alert("Something went wrong " + respnose.status)
+        showAlert("Loading failed", "error")
         return
     }
 
@@ -147,9 +161,12 @@ function createEditButton(dbBlogPost) {
         })
 
         if (response.status == 200) {
-            alert("Post updated")
+            showAlert("Post updated", "success")
         } else if (response.status == 400) {
-            alert("Something went wrong")
+            showAlert("Bad request", "error")
+            return
+        } else {
+            showAlert("Something went wrong", "error")
             return
         }
 
@@ -246,9 +263,9 @@ function createPostInfo(dbBlogPost) {
         })
 
         if (response.status == 204) {
-            alert("Post was successfully deleted")
+            showAlert("Post was successfully deleted", "success")
         } else {
-            alert("Something went wrong " + response.status)
+            showAlert("Something went wrong", "error")
             return
         }
         allPosts.removeChild(findPostById(dbBlogPost.id))
