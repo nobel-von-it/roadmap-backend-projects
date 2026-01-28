@@ -257,8 +257,8 @@ function createPostInfo(dbBlogPost) {
     postDelete.addEventListener("click", async (e) => {
         e.preventDefault()
 
-        console.log("trying to delete " + postHref)
-        const response = await fetch("/" + postHref, {
+        console.log("trying to delete post with id " + dbBlogPost.id)
+        const response = await fetch("/posts/" + dbBlogPost.id, {
             method: "DELETE",
         })
 
