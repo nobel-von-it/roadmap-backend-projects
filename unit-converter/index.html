@@ -10,49 +10,67 @@
     <div id="container">
         <p id="title">Unit Converter</p>
         <ul id="unit-list">
-            <li class="unit-item"><button>Length</button></li>
-            <li class="unit-item"><button>Weight</button></li>
-            <li class="unit-item"><button>Temperature</button></li>
+            <li class="unit-item" id="length-item"><button>Length</button></li>
+            <li class="unit-item" id="weight-item"><button>Weight</button></li>
+            <li class="unit-item" id="temperature-item"><button>Temperature</button></li>
         </ul>
         <div id="input-section">
-            <form class="unit-form" id="length-form">
-                <input type="number" id="lenght-convert">
-                <select id="length-from">
-                    <option value="cm">cm</option>
-                    <option value="m">m</option>
-                    <option value="km">km</option>
+            <p class="unit-form" id="length-form">
+                <input type="number" id="length-convert" name="value">
+                <select id="length-from" name="from">
+                    <option value="millimeter">millimeter</option>
+                    <option value="centimeter">centimeter</option>
+                    <option value="meter">meter</option>
+                    <option value="kilometer">kilometer</option>
+                    <option value="inch">inch</option>
+                    <option value="foot">foot</option>
+                    <option value="yard">yard</option>
+                    <option value="mile">mile</option>
                 </select>
-                <select id="length-to">
-                    <option value="cm">cm</option>
-                    <option value="m">m</option>
-                    <option value="km">km</option>
+                <select id="length-to" name="to">
+                    <option value="millimeter">millimeter</option>
+                    <option value="centimeter">centimeter</option>
+                    <option value="meter">meter</option>
+                    <option value="kilometer">kilometer</option>
+                    <option value="inch">inch</option>
+                    <option value="foot">foot</option>
+                    <option value="yard">yard</option>
+                    <option value="mile">mile</option>
                 </select>
-                <button type="submit" class="button-form" id="length-button">Convert</button>
-            </form>
-            <form class="unit-form" id="weight-form" style="display: none;">
-                <input type="number" id="weight-convert">
-                <select id="weight-from">
-                    <option value="kg">kg</option>
-                    <option value="lb">lb</option>
+                <button type="button" class="button-form" id="length-button">Convert</button>
+            </p>
+            <p class="unit-form" id="weight-form" style="display: none;">
+                <input type="number" id="weight-convert" name="value">
+                <select id="weight-from" name="from">
+                    <option value="milligram">milligram</option>
+                    <option value="gram">gram</option>
+                    <option value="kilogram">kilogram</option>
+                    <option value="pound">pound</option>
+                    <option value="ounce">ounce</option>
                 </select>
-                <select id="weight-to">
-                    <option value="kg">kg</option>
-                    <option value="lb">lb</option>
+                <select id="weight-to" name="to">
+                    <option value="milligram">milligram</option>
+                    <option value="gram">gram</option>
+                    <option value="kilogram">kilogram</option>
+                    <option value="pound">pound</option>
+                    <option value="ounce">ounce</option>
                 </select>
-                <button type="submit" class="button-form" id="weight-button">Convert</button>
-            </form>
-            <form class="unit-form" id="temperature-form" style="display: none;">
-                <input type="number" id="temperature-convert">
-                <select id="temperature-from">
-                    <option value="C">C</option>
-                    <option value="F">F</option>
+                <button type="button" class="button-form" id="weight-button">Convert</button>
+            </p>
+            <p class="unit-form" id="temperature-form" style="display: none;">
+                <input type="number" id="temperature-convert" name="value">
+                <select id="temperature-from" name="from">
+                    <option value="celsius">Celsius</option>
+                    <option value="fahrenheit">Fahrenheit</option>
+                    <option value="kelvin">Kelvin</option>
                 </select>
-                <select id="temperature-to">
-                    <option value="C">C</option>
-                    <option value="F">F</option>
+                <select id="temperature-to" name="to">
+                    <option value="celsius">Celsius</option>
+                    <option value="fahrenheit">Fahrenheit</option>
+                    <option value="kelvin">Kelvin</option>
                 </select>
-                <button type="submit" class="button-form" id="temperature-button">Convert</button>
-            </form>
+                <button type="button" class="button-form" id="temperature-button">Convert</button>
+            </p>
             <div id="result" style="display: none;">
                 <p id="result-label"></p>
                 <p id="result-value"></p>
@@ -61,7 +79,7 @@
             </div>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script src="static/scripts/script.js"></script>
 </body>
 
 </html>
