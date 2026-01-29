@@ -232,7 +232,8 @@ async fn main() -> Result<()> {
     let router = Router::new()
         .route("/api/convert", post(convert))
         .route("/", get(homepage))
-        .nest_service("/static/scripts", ServeDir::new("static/scripts"));
+        .nest_service("/static/scripts", ServeDir::new("static/scripts"))
+        .nest_service("/static/styles", ServeDir::new("static/styles"));
     let listener = TcpListener::bind("127.0.0.1:3002").await?;
 
     axum::serve(listener, router).await?;

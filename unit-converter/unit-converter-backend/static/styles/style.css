@@ -1,0 +1,153 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f7f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #333;
+}
+
+#container {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 450px;
+}
+
+#title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #1a1a1a;
+}
+
+#unit-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+}
+
+.unit-item {
+    flex: 1;
+}
+
+.unit-item button {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.unit-item button:hover {
+    background: #f0f0f0;
+    border-color: #bbb;
+}
+
+.unit-item button:focus {
+    outline: none;
+    border-color: #007bff;
+    color: #007bff;
+}
+
+#input-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.unit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+}
+
+input[type="number"], 
+select {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input[type="number"]:focus, 
+select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+button.button-form, 
+#reset-button, 
+#copy-button {
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.button-form {
+    background-color: #007bff;
+    color: white;
+    margin-top: 8px;
+}
+
+#reset-button {
+    background-color: #6c757d;
+    color: white;
+}
+
+#copy-button {
+    background-color: #28a745;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+#result {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px dashed #ccc;
+}
+
+#result-label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#result-value {
+    margin: 8px 0 15px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    word-break: break-all;
+}
+
+#result button {
+    margin: 0 4px;
+    font-size: 0.85rem;
+}
