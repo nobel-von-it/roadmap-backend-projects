@@ -4,3 +4,4 @@
 - unit-converter https://roadmap.sh/projects/unit-converter
 - task-tracker https://roadmap.sh/projects/task-tracker
 - github-activity https://roadmap.sh/projects/github-user-activity
+- expense-tracker https://roadmap.sh/projects/expense-tracker
