@@ -9,6 +9,7 @@ use axum::{
     routing::{get, post},
 };
 use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
 
 use crate::html::HtmlManager;
 
@@ -34,6 +35,7 @@ async fn main() -> Result<()> {
         )
         .route("/delete/{id}", post(handlers::admin::post::delete_article))
         .route("/admin", get(handlers::admin::get::admin_panel))
+        .nest_service("/static/css", ServeDir::new("css"))
         .with_state(hm);
     let listener = TcpListener::bind("127.0.0.1:3000").await?;
     axum::serve(listener, app).await?;
