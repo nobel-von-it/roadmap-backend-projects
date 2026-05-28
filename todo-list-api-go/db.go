@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 
 	_ "modernc.org/sqlite"
 )
@@ -13,6 +14,10 @@ type DB struct {
 func NewDB() (*DB, error) {
 	db, err := sql.Open("sqlite", "./todo.db")
 	if err != nil {
+		return nil, err
+	}
+	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+		db.Close()
 		return nil, err
 	}
 	return &DB{db}, nil
@@ -101,8 +106,18 @@ func (db *DB) DeleteTodo(todoID int, userID int) error {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(todoID, userID)
-	return err
+	result, err := stmt.Exec(todoID, userID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("todo not found")
+	}
+	return nil
 }
 
 func (db *DB) UpdateTodo(id int, title, description string, completed bool, userId int) error {
@@ -111,8 +126,18 @@ func (db *DB) UpdateTodo(id int, title, description string, completed bool, user
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(title, description, completed, id, userId)
-	return err
+	result, err := stmt.Exec(title, description, completed, id, userId)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("todo not found")
+	}
+	return nil
 }
 
 func (db *DB) GetTodos(userId int) ([]DbTodo, error) {
