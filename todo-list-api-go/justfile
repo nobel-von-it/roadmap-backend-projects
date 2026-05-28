@@ -1,0 +1,17 @@
+test-all: test cover race
+
+test:
+	go test -v ./...
+
+cover:
+	go test -cover ./...
+
+race:
+	go test -race ./...
+
+run: build
+	./todo-api
+
+
+build:
+	go build -o todo-api
