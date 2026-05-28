@@ -160,7 +160,23 @@ func (env *Env) GetTodosHandler(c fiber.Ctx) error {
 	}
 	userID := userIdVal.(int)
 
-	todos, err := env.db.GetTodos(userID)
+	pageVal := c.Query("page")
+	var page int
+	if pageVal == "" {
+		page = 1
+	} else {
+		page, _ = strconv.Atoi(pageVal)
+	}
+
+	limitVal := c.Query("limit")
+	var limit int
+	if limitVal == "" {
+		limit = 10
+	} else {
+		limit, _ = strconv.Atoi(limitVal)
+	}
+
+	todos, err := env.db.GetTodos(userID, page, limit)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "Failed to get todos",
@@ -169,6 +185,11 @@ func (env *Env) GetTodosHandler(c fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"todos": todos,
+		"meta": map[string]int{
+			"page":  page,
+			"limit": limit,
+			"total": len(todos),
+		},
 	})
 }
 

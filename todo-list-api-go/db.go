@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	_ "modernc.org/sqlite"
 )
@@ -140,8 +141,9 @@ func (db *DB) UpdateTodo(id int, title, description string, completed bool, user
 	return nil
 }
 
-func (db *DB) GetTodos(userId int) ([]DbTodo, error) {
-	stmt, err := db.Prepare("SELECT * FROM todos WHERE userId = ?")
+func (db *DB) GetTodos(userId int, page int, limit int) ([]DbTodo, error) {
+	sqlQuery := fmt.Sprintf("SELECT * FROM todos WHERE userId = ? LIMIT %d OFFSET %d", limit, (page-1)*limit)
+	stmt, err := db.Prepare(sqlQuery)
 	if err != nil {
 		return nil, err
 	}

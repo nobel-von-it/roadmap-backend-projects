@@ -11,7 +11,7 @@ type TodoRepository interface {
 	AddTodo(title, description string, userId int) (*DbTodo, error)
 	DeleteTodo(todoID int, userID int) error
 	UpdateTodo(id int, title, description string, completed bool, userId int) error
-	GetTodos(userId int) ([]DbTodo, error)
+	GetTodos(userId int, page int, limit int) ([]DbTodo, error)
 }
 
 type Storage interface {

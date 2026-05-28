@@ -49,7 +49,7 @@ func (m *MockStorage) UpdateTodo(id int, title, description string, completed bo
 	return nil
 }
 
-func (m *MockStorage) GetTodos(userId int) ([]DbTodo, error) {
+func (m *MockStorage) GetTodos(userId int, page int, limit int) ([]DbTodo, error) {
 	return nil, nil
 }
 
