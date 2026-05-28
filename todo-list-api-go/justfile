@@ -1,3 +1,5 @@
+app = todo-api
+
 test-all: test cover race
 
 test:
@@ -10,8 +12,8 @@ race:
 	go test -race ./...
 
 run: build
-	./todo-api
+	./$(app)
 
 
 build:
-	go build -o todo-api
+	go build -o $(app)
