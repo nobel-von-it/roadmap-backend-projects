@@ -19,22 +19,22 @@ func NewDB() (*DB, error) {
 }
 
 func (db *DB) Close() {
-	db.Close()
+	db.DB.Close()
 }
 
 func (db *DB) InitTables() {
 	db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		ID INTEGER PRIMARY KEY AUTOINCREMENT,
-		Name TEXT,
-		Email TEXT,
-		Password TEXT
+		Name TEXT NOT NULL,
+		Email TEXT UNIQUE NOT NULL,
+		Password TEXT NOT NULL
 	)`)
 	db.Exec(`CREATE TABLE IF NOT EXISTS todos (
 		ID INTEGER PRIMARY KEY AUTOINCREMENT,
-		Title TEXT,
+		Title TEXT NOT NULL,
 		Description TEXT,
 		Completed BOOLEAN,
-		UserID INTEGER,
+		UserID INTEGER NOT NULL,
 		FOREIGN KEY (UserID) REFERENCES users (ID)
 	)`)
 }
