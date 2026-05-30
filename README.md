@@ -9,3 +9,4 @@
 - task-tracker-frontend https://roadmap.sh/projects/task-tracker-js
 - todo-list-api-go https://roadmap.sh/projects/todo-list-api
 - expense-tracker-api https://roadmap.sh/projects/expense-tracker-api
+- github-trending-cli https://roadmap.sh/projects/github-trending-cli
