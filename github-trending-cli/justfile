@@ -1,0 +1,18 @@
+app := "trending-repos"
+
+test-all: test cover race
+
+test name="":
+    go test -v ./... {{ name }}
+
+cover:
+    go test -cover ./...
+
+race:
+    go test -race ./...
+
+run: build
+    ./{{ app }}
+
+build:
+    go build -o "{{ app }}"
