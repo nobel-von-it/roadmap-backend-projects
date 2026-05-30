@@ -8,3 +8,4 @@
 - personal-blog https://roadmap.sh/projects/personal-blog
 - task-tracker-frontend https://roadmap.sh/projects/task-tracker-js
 - todo-list-api-go https://roadmap.sh/projects/todo-list-api
+- expense-tracker-api https://roadmap.sh/projects/expense-tracker-api
