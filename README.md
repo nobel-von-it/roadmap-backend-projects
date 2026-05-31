@@ -11,3 +11,4 @@
 - expense-tracker-api https://roadmap.sh/projects/expense-tracker-api
 - github-trending-cli https://roadmap.sh/projects/github-trending-cli
 - tmdb-cli https://roadmap.sh/projects/tmdb-cli
+- caching-server https://roadmap.sh/projects/caching-server
