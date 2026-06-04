@@ -1,30 +1,46 @@
 package main
 
 import (
+	"context"
 	"log"
-
-	"github.com/gofiber/fiber/v3"
 )
 
 func main() {
-	db, err := NewDB()
+	// db, err := NewDB()
+	// if err != nil {
+	// 	log.Fatal("failed to connect to database: ", err)
+	// }
+	//
+	// if err := db.InitTables(); err != nil {
+	// 	log.Fatal(err)
+	// }
+	fs, err := NewFS("dev/storage")
 	if err != nil {
-		log.Fatal("failed to connect to database: ", err)
-	}
-
-	if err := db.InitTables(); err != nil {
 		log.Fatal(err)
 	}
 
-	dbController := NewDBController(db)
-	env := NewEnv(dbController)
+	log.Println(fs.root.String())
 
-	app := fiber.New()
+	note, err := fs.CreateNote(context.Background(), CreateNoteParams{
+		RelPath: NewPathBuilder("test/test2////////////"),
+		Note:    Note{Title: "Test", Content: "Test"}})
+	if err != nil {
+		if err == ErrNoteAlreadyExists {
+			log.Println("Note already exists")
+		} else {
+			log.Fatal(err)
+		}
+	}
 
-	api := app.Group("/api")
+	log.Println(note)
 
-	api.Post("/notes", env.CreateNoteHandler)
-	api.Get("/notes/:id/render", env.RenderNoteHandler)
-
-	app.Listen(":8080")
+	note, err = fs.GetNoteByID(context.Background(), 1)
+	if err != nil {
+		if err == ErrNoteNotFound {
+			log.Println("Note not found")
+		} else {
+			log.Fatal(err)
+		}
+	}
+	log.Println(note)
 }

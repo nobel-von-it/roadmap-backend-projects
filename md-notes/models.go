@@ -18,6 +18,7 @@ type NoteRepository interface {
 }
 
 type CreateNoteParams struct {
+	RelPath *PathBuilder `json:"relativePath"`
 	Note
 }
 
