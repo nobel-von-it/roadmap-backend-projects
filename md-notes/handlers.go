@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"nobel/md-notes/api"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -64,5 +65,41 @@ func (e *Env) RenderNoteHandler(c fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"note": note,
+	})
+}
+
+func (e *Env) CheckNoteHandler(c fiber.Ctx) error {
+	var checkNoteParams api.LTRequest
+	checkNoteIDStr := c.Params("id")
+
+	ctx, cancel := context.WithTimeout(c.Context(), ContextTimeout)
+	defer cancel()
+
+	checkNoteID, err := strconv.ParseInt(checkNoteIDStr, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	note, err := e.db.GetNoteByID(ctx, checkNoteID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	checkNoteParams.Text = note.Content
+	checkNoteParams.Language = api.Auto
+
+	result, err := checkNoteParams.Fetch(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"result": result,
 	})
 }
