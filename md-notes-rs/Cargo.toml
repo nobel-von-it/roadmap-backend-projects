@@ -1,0 +1,21 @@
+[package]
+name = "md-notes-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.103"
+axum = { version = "0.8.9", features = ["macros"] }
+axum-extra = "0.12.6"
+tower-http = { version = "0.6.2", features = ["trace"] }
+futures = "0.3.32"
+markdown = "1.0.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = ["full"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+walkdir = "2.5.0"
+
+[dev-dependencies]
+tempfile = "3.27.0"
