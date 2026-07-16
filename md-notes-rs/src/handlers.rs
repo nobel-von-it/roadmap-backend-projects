@@ -3,11 +3,17 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::{Html, IntoResponse},
+};
 
 use crate::{
     AppState, MdNoteRequest,
     fs::{NoteFS, get_file_name},
+    md::render_md_to_html,
 };
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
@@ -22,9 +28,48 @@ struct ListNotesResponse {
     notes: Vec<MdNote>,
 }
 
-#[tracing::instrument]
-pub async fn render_note_handler() {
-    tracing::info!("Render note handler called");
+#[tracing::instrument(skip(state, name))]
+pub async fn render_note_handler(
+    State(state): State<Arc<Mutex<AppState>>>,
+    Path(name): Path<String>,
+) -> impl IntoResponse {
+    let (fs, cached_notes) = match state.lock() {
+        Ok(guard) => {
+            tracing::debug!(
+                cached_count = guard.cached_notes.len(),
+                "AppState lock acquired successfully"
+            );
+            (guard.fs.clone(), guard.cached_notes.clone())
+        }
+        Err(err) => {
+            tracing::error!(error = %err, "Failed to acquire AppState lock (Mutex poisoned)");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response();
+        }
+    };
+    let mut tmp_path = name.clone();
+    if !tmp_path.starts_with("./") {
+        tmp_path = format!("./{}", tmp_path);
+    }
+    if !tmp_path.ends_with(".md") {
+        tmp_path = format!("{}.md", tmp_path);
+    }
+    let path = PathBuf::from(tmp_path);
+    match fs.get_content_by_path(&path).await {
+        Ok(content) => match render_md_to_html(&content).await {
+            Ok(html) => {
+                tracing::info!("Note rendered successfully");
+                (StatusCode::OK, html).into_response()
+            }
+            Err(err) => {
+                tracing::error!(error = %err, "Failed to render note");
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+            }
+        },
+        Err(err) => {
+            tracing::error!(error = %err, "Failed to render note");
+            (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+        }
+    }
 }
 
 #[tracing::instrument(skip(state, new_note))]
@@ -148,5 +193,6 @@ pub async fn list_notes_handler(State(state): State<Arc<Mutex<AppState>>>) -> im
 
 #[tracing::instrument]
 pub async fn grammar_check_handler() {
+    // TODO: use a docker container to run the grammar check locally
     tracing::info!("Grammar check handler called");
 }
