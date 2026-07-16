@@ -3,13 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use axum::{
-    Json,
-    body::Body,
-    extract::{FromRequest, Request, State},
-    http::StatusCode,
-    response::IntoResponse,
-};
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::{
     AppState, MdNoteRequest,
@@ -39,13 +33,13 @@ pub async fn create_note_handler(
     Json(new_note): Json<MdNoteRequest>,
 ) -> impl IntoResponse {
     tracing::debug!("Acquiring AppState lock...");
-    let (fs, cached_notes) = match state.lock() {
+    let fs = match state.lock() {
         Ok(guard) => {
             tracing::debug!(
                 cached_count = guard.cached_notes.len(),
                 "AppState lock acquired successfully"
             );
-            (guard.fs, guard.cached_notes.clone())
+            guard.fs
         }
         Err(err) => {
             tracing::error!(error = %err, "Failed to acquire AppState lock (Mutex poisoned)");
@@ -62,7 +56,7 @@ pub async fn create_note_handler(
         tmp_path = format!("{}.md", tmp_path);
     }
     let path = PathBuf::from(tmp_path);
-    if let Err(err) = fs
+    match fs
         .create(
             path.parent().unwrap().to_path_buf(),
             title,
@@ -70,10 +64,25 @@ pub async fn create_note_handler(
         )
         .await
     {
-        tracing::error!(error = %err, "Failed to create note");
-        return (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response();
+        Ok(_) => {
+            if let Ok(mut guard) = state.lock() {
+                guard.cached_notes.push(path.clone());
+                tracing::info!(
+                    "Note created successfully. New size: {}",
+                    guard.cached_notes.len()
+                );
+                // TODO: replace resopnse with the new note
+                (StatusCode::CREATED, "Note created successfully").into_response()
+            } else {
+                tracing::error!("Failed to acquire AppState lock (Mutex poisoned)");
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+            }
+        }
+        Err(err) => {
+            tracing::error!(error = %err, "Failed to create note");
+            (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+        }
     }
-    (StatusCode::OK, "OK").into_response()
 }
 
 #[tracing::instrument(skip(state))]
