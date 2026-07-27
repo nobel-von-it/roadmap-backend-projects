@@ -1,0 +1,21 @@
+FROM alpine:latest
+
+# Install Java and utilities
+RUN apk add --no-cache openjdk17-jre-headless curl unzip
+
+# Set LanguageTool version
+ENV LT_VERSION=6.4
+
+# Download and extract LanguageTool
+RUN curl -L -o /tmp/LanguageTool.zip https://languagetool.org/download/LanguageTool-$LT_VERSION.zip && \
+    unzip /tmp/LanguageTool.zip -d /opt && \
+    mv /opt/LanguageTool-$LT_VERSION /opt/languagetool && \
+    rm /tmp/LanguageTool.zip
+
+WORKDIR /opt/languagetool
+
+# Expose the default HTTP server port
+EXPOSE 8010
+
+# Run the LanguageTool HTTP Server on port 8010, accepting external connections
+CMD ["java", "-cp", "languagetool-server.jar", "org.languagetool.server.HTTPServer", "--port", "8010", "--public", "--allow-origin"]

@@ -1,0 +1,12 @@
+services:
+  languagetool:
+    build:
+      context: .
+      dockerfile: Dockerfile.languagetool
+    container_name: languagetool_server
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    environment:
+      - Java_Xms=512m
+      - Java_Xmx=1g
