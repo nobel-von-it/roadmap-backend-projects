@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Markdown Notes API Demo</title>
+</head>
+<body>
+    <h1>Markdown Notes App (API Demo)</h1>
+
+    <h2>1. Create Note</h2>
+    <form id="create-form">
+        <div>
+            <label for="name">Note Name:</label><br>
+            <input type="text" id="name" required placeholder="e.g. my_note">
+        </div>
+        <br>
+        <div>
+            <label for="content">Markdown Content:</label><br>
+            <textarea id="content" rows="6" cols="50" placeholder="# Hello World&#10;This is markdown."></textarea>
+        </div>
+        <br>
+        <button type="submit">Create Note (POST /api/notes)</button>
+    </form>
+    <p id="create-status"></p>
+
+    <hr>
+
+    <h2>2. Saved Notes</h2>
+    <button onclick="loadNotes()">Refresh List (GET /api/notes)</button>
+    <ul id="notes-list"></ul>
+
+    <hr>
+
+    <h2>3. Rendered HTML Output</h2>
+    <div id="render-output"><em>Select a note and click "Render HTML"</em></div>
+
+    <hr>
+
+    <h2>4. Grammar Check Output</h2>
+    <div id="grammar-output"><em>Select a note and click "Check Grammar"</em></div>
+
+    <script>
+        async function loadNotes() {
+            const listEl = document.getElementById('notes-list');
+            listEl.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/notes');
+                const data = await res.json();
+                listEl.innerHTML = '';
+                if (!data.notes || data.notes.length === 0) {
+                    listEl.innerHTML = '<li>No notes found.</li>';
+                    return;
+                }
+                data.notes.forEach(note => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <strong>${note.title}</strong> (ID: ${note.id}) 
+                        <button onclick="renderNote('${note.id}')">Render HTML</button>
+                        <button onclick="checkGrammar('${note.id}', '${note.title}')">Check Grammar</button>
+                    `;
+                    listEl.appendChild(li);
+                });
+            } catch (err) {
+                listEl.innerHTML = '<li>Error loading notes: ' + err.message + '</li>';
+            }
+        }
+
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusEl = document.getElementById('create-status');
+            statusEl.innerText = 'Creating note...';
+            const name = document.getElementById('name').value;
+            const content = document.getElementById('content').value;
+
+            try {
+                const res = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, content, dir: null })
+                });
+                if (res.ok) {
+                    statusEl.innerText = 'Note created successfully!';
+                    document.getElementById('name').value = '';
+                    document.getElementById('content').value = '';
+                    loadNotes();
+                } else {
+                    const txt = await res.text();
+                    statusEl.innerText = 'Error: ' + txt;
+                }
+            } catch (err) {
+                statusEl.innerText = 'Error: ' + err.message;
+            }
+        });
+
+        async function renderNote(id) {
+            const out = document.getElementById('render-output');
+            out.innerText = 'Rendering...';
+            try {
+                const res = await fetch(`/api/notes/${id}/render`);
+                if (res.ok) {
+                    const html = await res.text();
+                    out.innerHTML = html;
+                } else {
+                    out.innerText = 'Failed to render note.';
+                }
+            } catch (err) {
+                out.innerText = 'Error: ' + err.message;
+            }
+        }
+
+        async function checkGrammar(id, title) {
+            const out = document.getElementById('grammar-output');
+            out.innerText = 'Checking grammar...';
+            try {
+                const res = await fetch(`/api/notes/${id}/check`);
+                if (res.ok) {
+                    const data = await res.json();
+                    out.innerText = JSON.stringify(data, null, 2);
+                } else {
+                    // Temporary stub response for grammar check demo
+                    out.innerText = `[STUB / Заглушка] Grammar check for "${title}" (${id}):\nGrammar check stub response. No errors detected.`;
+                }
+            } catch (err) {
+                out.innerText = `[STUB / Заглушка] Grammar check for "${title}":\nGrammar check stub response.`;
+            }
+        }
+
+        loadNotes();
+    </script>
+</body>
+</html>

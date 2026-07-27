@@ -25,6 +25,30 @@ async fn response_to_string(response: axum::response::Response) -> String {
 }
 
 // ============================================================================
+// 0. Tests for Index Page (GET /)
+// ============================================================================
+
+#[tokio::test]
+async fn test_index_handler_serves_html() {
+    let (app, _dir) = setup_test_app();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let html_body = response_to_string(response).await;
+    assert!(html_body.contains("Markdown Notes App (API Demo)"));
+}
+
+// ============================================================================
 // 1. Tests for create_note_handler (POST /api/notes)
 // ============================================================================
 

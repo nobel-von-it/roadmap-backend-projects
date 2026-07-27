@@ -4,7 +4,7 @@ use axum::{
     Json, Router,
     extract::{Path, State},
     http::StatusCode,
-    response::IntoResponse,
+    response::{Html, IntoResponse},
     routing::{get, post},
 };
 use uuid::Uuid;
@@ -23,6 +23,7 @@ pub struct ListNotesResponse {
 
 pub fn create_router(app_state: Arc<AppState>) -> Router {
     Router::new()
+        .route("/", get(index_handler))
         .route(
             "/api/notes",
             post(create_note_handler).get(list_notes_handler),
@@ -31,6 +32,10 @@ pub fn create_router(app_state: Arc<AppState>) -> Router {
         .route("/api/grammar-check", post(grammar_check_handler))
         .route("/api/notes/{filename}/check", get(grammar_check_handler))
         .with_state(app_state)
+}
+
+pub async fn index_handler() -> impl IntoResponse {
+    Html(include_str!("../../static/index.html"))
 }
 
 #[tracing::instrument(skip(state, id))]
@@ -64,7 +69,7 @@ pub async fn create_note_handler(
 ) -> impl IntoResponse {
     tracing::debug!("Acquiring AppState lock...");
     let mut fs = state.fs.lock().await;
-    
+
     let dir = match new_note.dir {
         Some(d) => {
             let path = PathBuf::from(d);
