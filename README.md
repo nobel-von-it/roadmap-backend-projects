@@ -12,3 +12,4 @@
 - github-trending-cli https://roadmap.sh/projects/github-trending-cli
 - tmdb-cli https://roadmap.sh/projects/tmdb-cli
 - caching-server https://roadmap.sh/projects/caching-server
+- md-notes https://roadmap.sh/projects/markdown-note-taking-app
