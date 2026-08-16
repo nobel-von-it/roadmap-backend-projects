@@ -13,3 +13,4 @@
 - tmdb-cli https://roadmap.sh/projects/tmdb-cli
 - caching-server https://roadmap.sh/projects/caching-server
 - md-notes https://roadmap.sh/projects/markdown-note-taking-app
+- url-shortener https://roadmap.sh/projects/url-shortening-service
